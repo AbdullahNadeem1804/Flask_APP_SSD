@@ -1,11 +1,13 @@
 pipeline {
     agent any
+
     stages {
         stage('Clone Repository') {
             steps {
                 checkout scm
             }
         }
+
         stage('Install Dependencies') {
             steps {
                 bat '''
@@ -16,6 +18,7 @@ pipeline {
                 '''
             }
         }
+
         stage('Run Unit Tests') {
             steps {
                 bat '''
@@ -29,18 +32,32 @@ pipeline {
                 }
             }
         }
+
         stage('Build Application') {
             steps {
-                bat 'tar -cvf flask_app.tar . --exclude=venv'
+                echo 'Packaging only source code (skipping venv)...'
+                // This packages only .py files and requirements to keep it clean
+                bat 'tar -cf flask_app.tar *.py requirements.txt'
             }
         }
+
         stage('Deploy') {
             steps {
+                echo 'Simulating deployment to target directory...'
                 bat '''
-                    if not exist "C:\\temp\\flask_deployment" mkdir "C:\\temp\\flask_deployment"
-                    copy flask_app.tar "C:\\temp\\flask_deployment\\"
+                    if not exist "C:\\temp\\deploy" mkdir "C:\\temp\\deploy"
+                    copy flask_app.tar "C:\\temp\\deploy\\" /Y
                 '''
             }
+        }
+    }
+
+    post {
+        success {
+            echo 'SUCCESS: All stages completed.'
+        }
+        failure {
+            echo 'FAILURE: Check the logs above.'
         }
     }
 }
