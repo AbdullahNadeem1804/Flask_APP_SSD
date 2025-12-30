@@ -8,13 +8,12 @@ pipeline {
 
     stages {
         stage('Clone Repository') {
-        steps {
-            // Replace 'github-repo-creds' with the ID you chose above
-            git branch: 'main', 
-                credentialsId: 'github-repo-creds', 
-                url: 'https://github.com/your-username/your-repo.git'
-        }
+    steps {
+        // This command tells Jenkins to use the "Software Configuration Management" 
+        // settings already defined in the job UI.
+        checkout scm
     }
+}
 
         stage('Install Dependencies') {
             steps {
