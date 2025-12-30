@@ -8,12 +8,13 @@ pipeline {
 
     stages {
         stage('Clone Repository') {
-            steps {
-                // The GitHub plugin handles the checkout automatically 
-                // if configured in the Jenkins Job, but we can be explicit:
-                checkout scm
-            }
+        steps {
+            // Replace 'github-repo-creds' with the ID you chose above
+            git branch: 'main', 
+                credentialsId: 'github-repo-creds', 
+                url: 'https://github.com/your-username/your-repo.git'
         }
+    }
 
         stage('Install Dependencies') {
             steps {
@@ -60,6 +61,7 @@ pipeline {
                 '''
             }
         }
+        
     }
 
     post {
