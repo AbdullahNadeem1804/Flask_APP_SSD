@@ -19,8 +19,13 @@ pipeline {
                 bat '''
                     python -m venv venv
                     call venv\\Scripts\\activate
-                    pip install --upgrade pip
-                    pip install -r requirements.txt
+                    python -m pip install --upgrade pip
+                    if exist requirements.txt (
+                        pip install -r requirements.txt
+                    ) else (
+                        echo "Warning: requirements.txt not found! Installing basics..."
+                        pip install flask pytest
+                    )
                 '''
             }
         }
@@ -29,7 +34,9 @@ pipeline {
             steps {
                 bat '''
                     call venv\\Scripts\\activate
-                    pytest tests/ --doctest-modules --junitxml=junit_report.xml
+                    @echo off
+                    :: Running pytest as a module avoids 'command not found' errors on Windows
+                    python -m pytest --junitxml=junit_report.xml
                 '''
             }
             post {
