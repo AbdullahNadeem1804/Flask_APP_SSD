@@ -2,24 +2,23 @@ pipeline {
     agent any
 
     environment {
-        // Define your virtual environment name
-        VENV = "venv"
+        // In Windows, virtual envs are usually activated via a Scripts folder
+        VENV_PATH = "venv\\Scripts\\activate"
     }
 
     stages {
         stage('Clone Repository') {
-    steps {
-        // This command tells Jenkins to use the "Software Configuration Management" 
-        // settings already defined in the job UI.
-        checkout scm
-    }
-}
+            steps {
+                // Using checkout scm as we discussed to keep it simple
+                checkout scm
+            }
+        }
 
         stage('Install Dependencies') {
             steps {
-                sh '''
-                    python3 -m venv $VENV
-                    . $VENV/bin/activate
+                bat '''
+                    python -m venv venv
+                    call venv\\Scripts\\activate
                     pip install --upgrade pip
                     pip install -r requirements.txt
                 '''
@@ -28,9 +27,8 @@ pipeline {
 
         stage('Run Unit Tests') {
             steps {
-                sh '''
-                    . $VENV/bin/activate
-                    # Run pytest and generate a report if needed
+                bat '''
+                    call venv\\Scripts\\activate
                     pytest tests/ --doctest-modules --junitxml=junit_report.xml
                 '''
             }
@@ -43,32 +41,30 @@ pipeline {
 
         stage('Build Application') {
             steps {
-                echo 'Packaging application...'
-                // For Flask, this usually means creating a source distribution or containerizing
-                sh 'tar -cvf flask_app.tar.gz .'
+                echo 'Packaging application for Windows...'
+                // Using 'tar' (built into modern Windows) to package the app
+                bat 'tar -cvf flask_app.tar . --exclude=venv'
             }
         }
 
         stage('Deploy') {
             steps {
                 echo 'Simulating deployment...'
-                // Example: Copying to a local directory and restarting a service
-                sh '''
-                    mkdir -p /tmp/flask_deployment
-                    cp flask_app.tar.gz /tmp/flask_deployment/
-                    # systemctl restart flask_app.service (Requires sudo permissions)
+                // Simple directory copy for simulation
+                bat '''
+                    if not exist "C:\\temp\\flask_deployment" mkdir "C:\\temp\\flask_deployment"
+                    copy flask_app.tar "C:\\temp\\flask_deployment\\"
                 '''
             }
         }
-        
     }
 
     post {
         success {
-            echo 'Pipeline completed successfully!'
+            echo 'Pipeline completed successfully on Windows!'
         }
         failure {
-            echo 'Pipeline failed. Please check the logs.'
+            echo 'Pipeline failed. Check the Console Output for errors.'
         }
     }
 }
